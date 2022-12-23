@@ -1,4 +1,4 @@
-# Create your own custom and authenticated APT repository
+# Create your own Packages and APT repository
 
 ### Prerequisites
 
