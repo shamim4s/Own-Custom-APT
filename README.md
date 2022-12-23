@@ -1,4 +1,4 @@
-# Create your own Packages and APT repository
+# Create your own custom and authenticated APT repository
 
 ### Prerequisites
 
@@ -305,23 +305,100 @@ Expire-Date: 0
 %commit" > /tmp/example-pgp-key.batch
 ```
 
-
+then we will generate it under a new temporary gpg keyring:
+```
 export GNUPGHOME="$(mktemp -d ~/example/pgpkeys-XXXXXX)"
-
 gpg --no-tty --batch --gen-key /tmp/example-pgp-key.batch
-
+```
+Since we overrode the GNUPGHOME to a temporary directory, we can keep this key separate from our other keys. Let’s take a quick look at the contents of the directory:
+```
 ls "$GNUPGHOME/private-keys-v1.d"
+```
 
+will show something along the lines of
+```
+A3FB218BA1929542FF110C7D1B077B6469F769C9.key
+```
+
+which contains binary data. We can also view all of our loaded keys with:
+```
 gpg --list-keys
-
+```
+which will show something similar to
+```
+/home/alex/example/pgpkeys-pyml86/pubring.kbx
+-------------------------------
+pub   rsa4096 2021-05-18 [SCEA]
+      B4D5C8B003C50A38A7E85B5989376CAC59892E72
+uid           [ultimate]
+```
+This PGP key is comprised of both a public key, and a private key. Let’s start with exporting the public key:
+```
 gpg --armor --export example > ~/example/pgp-key.public
+```
 
-cat ~/example/pgp-key.public
-
-cat ~/example/pgp-key.public | gpg --list-packets
-
+Next let’s export the private key so we can back it up somewhere safe.
+```
 gpg --armor --export-secret-keys example > ~/example/pgp-key.private
+```
+Now that we’ve generated a PGP key pair, let’s move on to signing files with them.
 
-cat ~/example/pgp-key.private
+### Signing the Release File
+Before we start signing with out keys, let’s make sure that we can import the backup we made. To do that, we will create a new GPG keyring location:
+```
+export GNUPGHOME="$(mktemp -d ~/example/pgpkeys-XXXXXX)"
+```
 
-cat ~/example/pgp-key.private | gpg --list-packets
+Next we will import our backed up private key:
+```
+cat ~/example/pgp-key.private | gpg --import
+```
+which should show a similar imported message:
+```
+gpg: key 4E793BC948F34C6F: public key "example <example@example.com>" imported
+gpg: key 4E793BC948F34C6F: secret key imported
+gpg: Total number processed: 1
+gpg:               imported: 1
+gpg:       secret keys read: 1
+gpg:   secret keys imported: 1
+```
+
+Ok, let’s get around to signing the Release file now.
+```
+cat ~/example/apt-repo/dists/stable/Release | gpg --default-key example -abs > ~/example/apt-repo/dists/stable/Release.gpg
+```
+
+Now when an apt client performs an update, it will fetch both Release and Release.gpg and will verify the signature is valid; However to increase the speed, we will create a third file InRelease which will combine both the contents of Release and the PGP signature:
+```
+cat ~/example/apt-repo/dists/stable/Release | gpg --default-key example -abs --clearsign > ~/example/apt-repo/dists/stable/InRelease
+```
+
+### Testing It Out
+We need to tell apt which public pgp key to use when verifying the apt repository. We will add a new signed-by attribute to our apt config:
+```
+echo "deb [arch=amd64 signed-by=$HOME/example/pgp-key.public] http://136.243.196.122:8000/apt-repo stable main" | sudo tee /etc/apt/sources.list.d/example.list
+```
+
+Next start back up your web server Again:
+
+```
+cd ~/example
+```
+### Run python server on a specific port on this directory as a web directory
+```
+python3 -m http.server -b your-server-ip  8000
+```
+
+Then finally update apt and install our new hello-world package:
+```
+sudo apt-get clean
+sudo apt-get update 
+```
+### Finally you can install your package with signed-key:
+```
+sudo apt-get install hello-world
+```
+### To check the program run hello-world by command:
+```
+./hello-world
+```
