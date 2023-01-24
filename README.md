@@ -230,7 +230,7 @@ If you want to support multiple architectures, make a directory above for each t
 cd ~/example/apt-repo
 dpkg-scanpackages --arch amd64 pool/ > dists/stable/main/binary-amd64/Packages
 ```
-1[cd repo dpkg packages](https://github.com/shamim4s/Own-Custom-APT/blob/master/images/cd%20repo%20dpkgscanpkg%20package.png?raw=true)
+![cd repo dpkg packages](https://github.com/shamim4s/Own-Custom-APT/blob/master/images/cd%20repo%20dpkgscanpkg%20package.png?raw=true)
 
 ### If you get any error something like  LC_ALL=0 or similer, just fix this error by command :
 
@@ -247,6 +247,8 @@ It’s also good practice to compress the packages file, as apt will favour down
 ```
 cat dists/stable/main/binary-amd64/Packages | gzip -9 > dists/stable/main/binary-amd64/Packages.gz
 ```
+![compress the packages file](https://github.com/shamim4s/Own-Custom-APT/blob/master/images/cat%20package%20gzip.png?raw=true)
+
 
 ### Let’s take a quick look at the contents of the Packages file:
 
@@ -269,6 +271,9 @@ Homepage: http://shamim.app>
 Description: A program that prints hello
 
 ```
+![quick look at the contents of the Packages](https://github.com/shamim4s/Own-Custom-APT/blob/master/images/cat%20binary%20amd%20packages.png?raw=true)
+
+
 
 ### if you had multiple deb files, you would have an entry for each package
 
@@ -310,13 +315,14 @@ do_hash "SHA1" "sha1sum"
 do_hash "SHA256" "sha256sum"
 ' > ~/example/generate-release.sh && chmod +x ~/example/generate-release.sh
 ```
-
+![create a Release file](https://github.com/shamim4s/Own-Custom-APT/blob/master/images/echo%20release.png?raw=true)
 
 ### Next let’s run the generate-release.sh script with:
 ```
 cd ~/example/apt-repo/dists/stable
 ~/example/generate-release.sh > Release
 ```
+![un the generate-release.sh](https://github.com/shamim4s/Own-Custom-APT/blob/master/images/run%20release.sh%20to%20release.png?raw=true)
 
 At this point, you can try hosting this repo for yourself. In this example we’ll use python’s simple HTTP server; 
 however in practice you’ll want to use a production-ready server. 
@@ -329,6 +335,9 @@ cd ~/example
 ```
 python3 -m http.server -b your-server-ip  8000
 ```
+![Run python webserver](https://github.com/shamim4s/Own-Custom-APT/blob/master/images/run%20python%20server.png?raw=true)
+
+
 When server is running you need to configure this apt repository by :
 ```
 echo "deb [trusted=yes] http://136.243.196.122:8000/apt-repo stable main" >> /etc/apt/sources.list.d/example.list
@@ -337,15 +346,23 @@ echo "deb [trusted=yes] http://136.243.196.122:8000/apt-repo stable main" >> /et
 ```
 cat  /etc/apt/sources.list.d/example.list
 ```
+![add repo list and check](https://github.com/shamim4s/Own-Custom-APT/blob/master/images/add%20repo%20list.png?raw=true)
+
+
 
 Then finally update apt and install our new hello-world package:
 ```
 sudo apt-get update 
 ```
+![apt update](https://github.com/shamim4s/Own-Custom-APT/blob/master/images/apt%20update.png?raw=true)
+
+
+
 ### Finally you can install your package from your own repo:
 ```
 sudo apt-get install hello-world
 ```
+![apt install hello](https://github.com/shamim4s/Own-Custom-APT/blob/master/images/apt%20install%20hello.png?raw=true)
 ### To check the program run hello-world by command:
 ```
 hello
@@ -354,4 +371,5 @@ hello
 ```
 Hello, world!
 ```
+![run hello](https://github.com/shamim4s/Own-Custom-APT/blob/master/images/run%20hello.png?raw=true)
 
