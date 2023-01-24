@@ -1,3 +1,4 @@
+
 # Create your own custom and authenticated APT repository
 
 ### Prerequisites
@@ -6,6 +7,24 @@ This tutorial assumes you are using Ubuntu, and that the following packages are 
 ```
 sudo apt-get install -y gcc dpkg-dev gpg
 ```
+![install -y gcc dpkg-dev gpg](https://raw.githubusercontent.com/shamim4s/Own-Custom-APT/master/images/install-gcc-dpkg-dev-gpg.jpg)
+
+
+#Install golang from apt repository 
+```
+sudo apt install golang-go
+```
+![install golang-go](https://raw.githubusercontent.com/shamim4s/Own-Custom-APT/e17e7c812b14fd4988058695740c7739e4f6fedb/images/installgolang.png)
+
+
+
+Check golang version after install to make sure golang installed properly
+```
+go version
+```
+![go version](https://github.com/shamim4s/Own-Custom-APT/blob/master/images/Screenshot_20230125_011746.png?raw=true)
+
+
 # Step 0: Create a Simple Hello World Program
 
 Before getting started with packaging,
@@ -17,32 +36,43 @@ let’s create a basic **hello world** program under **~/example/hello-world-pro
 ```
 mkdir -p ~/example/hello-world-program
 ```
-
+![mkdir -p ~/example/hello-world-program](https://github.com/shamim4s/Own-Custom-APT/blob/master/images/make-hello-world-program-folder.png?raw=true)
  
 
-###  you can copy and paste the following commands into your terminal to create simple **hello.c** program
+###  you can copy and paste the following commands into your terminal to create simple **hello.go** program
 
 ```
-echo '#include <stdio.h>
-int main() {
-    printf("hello packaged world\n");
-    return 0;
-}' > ~/example/hello-world-program/hello.c
+echo 'package main
+
+import (
+        "fmt"
+)
+
+func main() {
+    fmt.Println("Hello, world!")
+}' > ~/example/hello-world-program/hello.go
 ```
+![create simple hello.go](https://github.com/shamim4s/Own-Custom-APT/blob/master/images/create-hello.go.png?raw=true)
+
 
 ### Then, you can compile it with:
 
 ```
 cd ~/example/hello-world-program
-gcc -o hello-world hello.c
+
 ```
-There’s no technical reason for picking C for this example – the language doesn’t matter. 
-It’s the binary we will be distributing in our deb package.
+![cd ~/example/hello-world-program](https://github.com/shamim4s/Own-Custom-APT/blob/master/images/cd-hello-folder.png?raw=true)
+<br/>
+
 
 ### Run and check its working properly or not.
 ```
-./hello-world
+go build hello.go
+./hello
 ```
+#### This will print **Hello, World**
+![go build hello.go](https://github.com/shamim4s/Own-Custom-APT/blob/master/images/build-go-file.png?raw=true)
+
 
 # Step 1: Creating a deb Package
 Debian, and Debian-based Linux distributions use .deb packages to package and distribute programs. 
@@ -62,6 +92,7 @@ To start we will create a directory in the form:
 ```
 mkdir -p ~/example/hello-world_0.0.1-1_amd64
 ```
+![mkdir hello-world_0.0.1-1_amd64](https://github.com/shamim4s/Own-Custom-APT/blob/master/images/make-hello-world-program-folder.png?raw=true)
 
 This directory will be the root of the package. Since we want our hello-world binary to be installed system wide, we’ll have to store it under **usr/bin/hello-world** with the following commands:
 
@@ -70,13 +101,13 @@ cd ~/example/hello-world_0.0.1-1_amd64
 mkdir -p usr/bin
 cp ~/example/hello-world-program/hello-world usr/bin/.
 ```
+![mkdir bin](https://github.com/shamim4s/Own-Custom-APT/blob/master/images/mkdir-bin.jpg?raw=true)
 
 Each package requires a control file which needs to be located under the DEBIAN directory. 
 
 ```
 mkdir -p ~/example/hello-world_0.0.1-1_amd64/DEBIAN
 ```
-
 
 ### You can copy and paste the following to create one:
 ```
@@ -89,6 +120,8 @@ Homepage: http://shamim.app
 Description: A program that prints hello" \
 > ~/example/hello-world_0.0.1-1_amd64/DEBIAN/control
 ```
+![Create debian and control file](https://github.com/shamim4s/Own-Custom-APT/blob/master/images/mkdevian-create-control.png?raw=true)
+
 
 Note that we’re assuming an amd64 Architecture for this tutorial, if your binary is for a different architecture, adjust accordingly. If you’re distributing a platform-independent package, you can set the architecture to all.
 
@@ -96,6 +129,8 @@ Note that we’re assuming an amd64 Architecture for this tutorial, if your bina
 ```
 dpkg --build ~/example/hello-world_0.0.1-1_amd64
 ```
+![build deb](https://github.com/shamim4s/Own-Custom-APT/blob/master/images/build-deb-package.png?raw=true)
+
 
 This will output a deb package under **~/example/hello-world_0.0.1.deb**.
 
@@ -117,6 +152,9 @@ Architecture: amd64
 Homepage: http://shamim.app
 Description: A program that prints hello
 ```
+![deb info](https://github.com/shamim4s/Own-Custom-APT/blob/master/images/deb-info.png?raw=true)
+
+
 
 ### You can also view the contents by running
 ```
@@ -128,29 +166,39 @@ which will show:
 drwxrwxr-x shamim/shamim         0 2021-05-17 16:21 ./
 drwxrwxr-x shamim/shamim         0 2021-05-17 16:18 ./usr/
 drwxrwxr-x shamim/shamim         0 2021-05-17 16:18 ./usr/bin/
--rwxrwxr-x shamim/shamim     16696 2021-05-17 16:18 ./usr/bin/hello-world
+-rwxrwxr-x shamim/shamim     16696 2021-05-17 16:18 ./usr/bin/hello
 ```
+![deb contents](https://github.com/shamim4s/Own-Custom-APT/blob/master/images/deb%20contents.png?raw=true)
+
+
 
 ### This package can then be installed using the **-f** option under **apt-get install**
 ```
 sudo apt install -f ~/example/hello-world_0.0.1-1_amd64.deb
 ```
-
 ### To check the program run hello-world by command:
 ```
-./hello-world
+hello
 ```
+which should output **hello, world** respectively.
 
-which should output **hello packaged world** respectively.
+![install deb file](https://github.com/shamim4s/Own-Custom-APT/blob/master/images/install-f-deb.png?raw=true)
+
+
+
+
+
 
 
 ### Finally, if you want to remove it, you can run:
 ```
 sudo apt-get remove hello-world
 ```
+![remove hello](https://github.com/shamim4s/Own-Custom-APT/blob/master/images/apt%20remove%20hello.png?raw=true)
+
+
 
 #### This concludes the first step of building a .deb package
-
 
 # Step 2: Creating an apt Repository
 
@@ -160,14 +208,20 @@ In this step, we will show how to create your own apt repository which can be us
 ```
 mkdir -p ~/example/apt-repo/pool/main/
 ```
-### Then copy our deb(s) into this directory:
-cp ~/example/hello-world_0.0.1-1_amd64.deb ~/example/apt-repo/pool/main/.
+![mkdir repo](https://github.com/shamim4s/Own-Custom-APT/blob/master/images/mkdir%20repo%20pool%20main.png?raw=true)
 
+
+### Then copy our deb(s) into this directory:
+```
+cp ~/example/hello-world_0.0.1-1_amd64.deb ~/example/apt-repo/pool/main/.
+```
+![cp deb main](https://github.com/shamim4s/Own-Custom-APT/blob/master/images/cp%20deb%20main.png?raw=true)
 
 Once you’ve copied in all of your debs, we will create a different directory to contain a list of all available packages and corresponding metadata
 ```
 mkdir -p ~/example/apt-repo/dists/stable/main/binary-amd64
 ```
+![mkdir binary amd](https://github.com/shamim4s/Own-Custom-APT/blob/master/images/mk%20binary%20amd.png?raw=true)
 
 If you want to support multiple architectures, make a directory above for each type (e.g. i386, amd64, etc).
 
@@ -176,6 +230,7 @@ If you want to support multiple architectures, make a directory above for each t
 cd ~/example/apt-repo
 dpkg-scanpackages --arch amd64 pool/ > dists/stable/main/binary-amd64/Packages
 ```
+1[cd repo dpkg packages](https://github.com/shamim4s/Own-Custom-APT/blob/master/images/cd%20repo%20dpkgscanpkg%20package.png?raw=true)
 
 ### If you get any error something like  LC_ALL=0 or similer, just fix this error by command :
 
@@ -194,6 +249,10 @@ cat dists/stable/main/binary-amd64/Packages | gzip -9 > dists/stable/main/binary
 ```
 
 ### Let’s take a quick look at the contents of the Packages file:
+
+```
+cat dists/stable/main/binary-amd64/Packages
+```
 
 ```
 Package: hello-world
@@ -275,6 +334,10 @@ When server is running you need to configure this apt repository by :
 echo "deb [trusted=yes] http://136.243.196.122:8000/apt-repo stable main" >> /etc/apt/sources.list.d/example.list
 ```
 
+```
+cat  /etc/apt/sources.list.d/example.list
+```
+
 Then finally update apt and install our new hello-world package:
 ```
 sudo apt-get update 
@@ -285,120 +348,10 @@ sudo apt-get install hello-world
 ```
 ### To check the program run hello-world by command:
 ```
-./hello-world
+hello
+```
+### it will print Hello, world!
+```
+Hello, world!
 ```
 
-
-# Step 3: Signing your apt Repository With GPG/PGP
-
-### Creating a New Public/Private PGP Key Pair
-
-```
-echo "%echo Generating an example PGP key
-Key-Type: RSA
-Key-Length: 4096
-Name-Real: Shamim
-Name-Email: me@shamim.app
-Expire-Date: 0
-%no-ask-passphrase
-%no-protection
-%commit" > /tmp/example-pgp-key.batch
-```
-
-then we will generate it under a new temporary gpg keyring:
-```
-export GNUPGHOME="$(mktemp -d ~/example/pgpkeys-XXXXXX)"
-gpg --no-tty --batch --gen-key /tmp/example-pgp-key.batch
-```
-Since we overrode the GNUPGHOME to a temporary directory, we can keep this key separate from our other keys. Let’s take a quick look at the contents of the directory:
-```
-ls "$GNUPGHOME/private-keys-v1.d"
-```
-
-will show something along the lines of
-```
-A3FB218BA1929542FF110C7D1B077B6469F769C9.key
-```
-
-which contains binary data. We can also view all of our loaded keys with:
-```
-gpg --list-keys
-```
-which will show something similar to
-```
-/home/alex/example/pgpkeys-pyml86/pubring.kbx
--------------------------------
-pub   rsa4096 2021-05-18 [SCEA]
-      B4D5C8B003C50A38A7E85B5989376CAC59892E72
-uid           [ultimate]
-```
-This PGP key is comprised of both a public key, and a private key. Let’s start with exporting the public key:
-```
-gpg --armor --export example > ~/example/pgp-key.public
-```
-
-Next let’s export the private key so we can back it up somewhere safe.
-```
-gpg --armor --export-secret-keys example > ~/example/pgp-key.private
-```
-Now that we’ve generated a PGP key pair, let’s move on to signing files with them.
-
-### Signing the Release File
-Before we start signing with out keys, let’s make sure that we can import the backup we made. To do that, we will create a new GPG keyring location:
-```
-export GNUPGHOME="$(mktemp -d ~/example/pgpkeys-XXXXXX)"
-```
-
-Next we will import our backed up private key:
-```
-cat ~/example/pgp-key.private | gpg --import
-```
-which should show a similar imported message:
-```
-gpg: key 4E793BC948F34C6F: public key "example <example@example.com>" imported
-gpg: key 4E793BC948F34C6F: secret key imported
-gpg: Total number processed: 1
-gpg:               imported: 1
-gpg:       secret keys read: 1
-gpg:   secret keys imported: 1
-```
-
-Ok, let’s get around to signing the Release file now.
-```
-cat ~/example/apt-repo/dists/stable/Release | gpg --default-key example -abs > ~/example/apt-repo/dists/stable/Release.gpg
-```
-
-Now when an apt client performs an update, it will fetch both Release and Release.gpg and will verify the signature is valid; However to increase the speed, we will create a third file InRelease which will combine both the contents of Release and the PGP signature:
-```
-cat ~/example/apt-repo/dists/stable/Release | gpg --default-key example -abs --clearsign > ~/example/apt-repo/dists/stable/InRelease
-```
-
-### Testing It Out
-We need to tell apt which public pgp key to use when verifying the apt repository. We will add a new signed-by attribute to our apt config:
-```
-echo "deb [arch=amd64 signed-by=$HOME/example/pgp-key.public] http://136.243.196.122:8000/apt-repo stable main" | sudo tee /etc/apt/sources.list.d/example.list
-```
-
-Next start back up your web server Again:
-
-```
-cd ~/example
-```
-### Run python server on a specific port on this directory as a web directory
-```
-python3 -m http.server -b your-server-ip  8000
-```
-
-Then finally update apt and install our new hello-world package:
-```
-sudo apt-get clean
-sudo apt-get update 
-```
-### Finally you can install your package with signed-key:
-```
-sudo apt-get install hello-world
-```
-### To check the program run hello-world by command:
-```
-./hello-world
-```
